@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TAKAMURA API</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Cairo', sans-serif;
+        }
+
+        /* فيديو الخلفية */
+        .video-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: -1;
+        }
+
+        /* تغطية داكنة فوق الفيديو لتحسين وضوح النص */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: -1;
+        }
+
+        body {
+            color: white;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        h1 {
+            font-size: 28px;
+            margin-bottom: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 10px 20px;
+            border-radius: 8px;
+            backdrop-filter: blur(5px);
+        }
+
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+            max-width: 600px;
+            width: 100%;
+        }
+
+        /* تصميم بطاقات الأنواع (ستايل زجاجي) */
+        .type-box {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 15px 25px;
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            text-decoration: none;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: bold;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 2px 4px 10px rgba(0, 0, 0, 0.2);
+            min-width: 250px;
+            max-width: 100%;
+        }
+
+        /* تأثير عند تحريك الماوس على البطاقة */
+        .type-box:hover {
+            transform: scale(1.1);
+            box-shadow: 4px 6px 15px rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.25);
+        }
+
+        .message {
+            font-size: 18px;
+            margin-top: 15px;
+            color: #ddd;
+        }
+        /* زر الأيقونة الدائرية */
+.chatbot-icon {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 60px;
+    height: 60px;
+    background: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+    transition: transform 0.3s ease;
+}
+
+.chatbot-icon img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+}
+
+.chatbot-icon:hover {
+    transform: scale(1.1);
+}
+
+/* صندوق الدردشة */
+.chatbot-container {
+    position: fixed;
+    bottom: 80px;
+    right: 20px;
+    width: 300px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    backdrop-filter: blur(10px);
+    overflow: hidden;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+    display: none;
+    flex-direction: column;
+}
+
+/* الهيدر */
+.chat-header {
+    background: rgba(0, 0, 0, 0.6);
+    color: white;
+    padding: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: bold;
+}
+
+.close-chat {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 20px;
+    cursor: pointer;
+}
+
+/* محتوى الدردشة */
+.chat-body {
+    display: flex;
+    flex-direction: column;
+    padding: 10px;
+    height: 300px;
+    overflow-y: auto;
+}
+
+.chat-messages {
+    flex-grow: 1;
+    max-height: 250px;
+    overflow-y: auto;
+}
+
+.chat-messages div {
+    padding: 8px;
+    margin: 5px;
+    border-radius: 8px;
+    max-width: 80%;
+}
+
+.user-message {
+    background: rgba(0, 123, 255, 0.8);
+    color: white;
+    align-self: flex-end;
+}
+
+.bot-message {
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    align-self: flex-start;
+}
+
+#chat-input {
+    width: calc(100% - 60px);
+    padding: 5px;
+    border: none;
+    border-radius: 5px;
+}
+
+button {
+    width: 50px;
+    padding: 5px;
+    background: #007bff;
+    color: white;
+    border: none;
+    cursor: pointer;
+    border-radius: 5px;
+}
+
+button:hover {
+    background: #0056b3;
+}
+    </style>
+</head>
+<body>
+
+    <!-- فيديو الخلفية -->
+    <video class="video-background" autoplay loop muted>
+        <source src="https://files.catbox.moe/xob43j.mp4" type="video/WebM">
+        متصفحك لا يدعم تشغيل الفيديو.
+    </video>
+    
+    <!-- تغطية داكنة لتحسين الوضوح -->
+    <div class="overlay"></div>
+
+    <h1>TAKAMURA API</h1>
+    <div class="container" id="type-container">
+        <p class="message" id="message">جارٍ تحميل البيانات...</p>
+    </div>
+
+    <script>
+        async function loadTypes() {
+            try {
+                const response = await fetch('/api/list');
+                const data = await response.json();
+                const container = document.getElementById('type-container');
+                const message = document.getElementById('message');
+
+                container.innerHTML = ''; // مسح الرسالة
+
+                const types = [...new Set(data.map(api => api.type || 'افتراضي'))];
+
+                if (types.length === 0) {
+                    message.innerText = "لم يتم العثور على أنواع APIs.";
+                    return;
+                }
+
+                types.forEach(type => {
+                    const typeElement = document.createElement('a');
+                    typeElement.classList.add('type-box');
+                    typeElement.href = `type.html?type=${type}`;
+                    typeElement.innerText = `${type.toUpperCase()}`;
+                    container.appendChild(typeElement);
+                });
+            } catch (error) {
+                console.error('خطأ في تحميل البيانات:', error);
+                document.getElementById('message').innerText = "❌ حدث خطأ أثناء تحميل البيانات.";
+            }
+        }
+
+        loadTypes();
+    </script>
+    <script>
+    function toggleChat() {
+        const chatContainer = document.getElementById("chat-container");
+        chatContainer.style.display = chatContainer.style.display === "flex" ? "none" : "flex";
+    }
+
+    function handleKeyPress(event) {
+        if (event.key === "Enter") {
+            sendMessage();
+        }
+    }
+
+    async function sendMessage() {
+        const inputField = document.getElementById("chat-input");
+        const messagesContainer = document.getElementById("chat-messages");
+        const userMessage = inputField.value.trim();
+        const prompt = 'You are an intelligent and friendly assistant named Takamura. Your goal is to provide helpful, informative, and friendly responses to users. You respond in a polite and engaging manner, always offering clear and concise answers. You are capable of answering a variety of questions, including general knowledge, troubleshooting, or casual conversation. If a question is unclear, you politely ask for clarification. Always maintain a positive and respectful tone.';
+        
+        if (userMessage === "") return;
+
+        // إضافة رسالة المستخدم
+        const userDiv = document.createElement("div");
+        userDiv.className = "user-message";
+        userDiv.innerText = userMessage;
+        messagesContainer.appendChild(userDiv);
+        inputField.value = "";
+
+        // طلب الرد من API
+        try {
+            const response = await fetch(`${global.t}/api/ai/cai?prompt=${prompt}&text=${encodeURIComponent(userMessage)}`);
+            const data = await response.text();
+
+            const botDiv = document.createElement("div");
+            botDiv.className = "bot-message";
+            botDiv.innerText = data;
+            messagesContainer.appendChild(botDiv);
+        } catch (error) {
+            console.error("خطأ في جلب الرد:", error);
+            const botDiv = document.createElement("div");
+            botDiv.className = "bot-message";
+            botDiv.innerText = "❌ حدث خطأ أثناء الاتصال بالخادم.";
+            messagesContainer.appendChild(botDiv);
+        }
+
+        // التمرير للأسفل تلقائيًا
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+    </script>
+    <div class="chatbot-icon" onclick="toggleChat()">
+    <img src="https://c.top4top.io/p_3352185ep0.jpg" alt="Bot">
+</div>
+
+<div class="chatbot-container" id="chat-container">
+    <div class="chat-header">
+        <span>💬 Takamura Bot</span>
+        <button class="close-chat" onclick="toggleChat()">×</button>
+    </div>
+    <div class="chat-body" id="chat-body">
+        <div class="chat-messages" id="chat-messages"></div>
+        <input type="text" id="chat-input" placeholder="اكتب رسالتك..." onkeypress="handleKeyPress(event)">
+        <button onclick="sendMessage()">إرسال</button>
+    </div>
+</div>
+    
+</body>
+</html>
